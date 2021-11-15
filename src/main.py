@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 
+import json
 from typing import Optional
+from SPARQLWrapper import SPARQLWrapper, JSON
 
 app = FastAPI()
 
@@ -9,10 +11,26 @@ def read_root():
     return {"Hello": "Sparql"}
 
 
-@app.get("/names")
-def read_names():
-    return [{"student1": "Gorka"},
-        {"student2": "Celia"},
-        {"student3": "Luis"},
-        {"student4": "Sergio"}]
+# From all study room, get name, road_name, number, postal_code. 
+@app.get("/studies_room")
+def read_study_rooms():
+
+    sparql = SPARQLWrapper("http://localhost:9000/sparql")
+    sparql.setQuery("""
+        PREFIX rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+        PREFIX rdfs: http://www.w3.org/2000/01/rdf-schema#
+        SELECT * WHERE {
+            ?sub ?pred ?obj .
+        } 
+        limit 10
+        """)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    results_json = json.dumps(results, indent = 4)
+
+    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    print(results_json)
+
+    return results_json
+
 
